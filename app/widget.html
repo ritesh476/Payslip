@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payslip Generator</title>
+    <style>
+      :root {
+        --ink: #172033;
+        --muted: #647084;
+        --line: #dce4ee;
+        --blue: #246bfe;
+        --soft-blue: #f3f7ff;
+        --coral: #f34b48;
+        --surface: #ffffff;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-width: 320px;
+        color: var(--ink);
+        background: #f7f9fc;
+        font: 12px/1.45 "Trebuchet MS", Arial, sans-serif;
+      }
+      .page { max-width: 980px; margin: 0 auto; padding: 22px; }
+      .paper {
+        background: var(--surface);
+        border: 1px solid #e5eaf1;
+        border-radius: 5px;
+        box-shadow: 0 5px 18px rgba(27, 47, 80, .08);
+        padding: 25px 28px 30px;
+      }
+      .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+      .brand { display: flex; gap: 12px; align-items: center; }
+      .logo { width: 76px; height: 46px; border: 1px dashed #b9d3ff; display: grid; place-items: center; color: var(--blue); font-size: 10px; }
+      .logo:before { content: "◉"; display: block; font-size: 20px; line-height: 16px; }
+      .logo span { display: block; }
+      .brand-copy { width: 150px; }
+      .brand-copy strong { display: block; font-size: 11px; }
+      .brand-copy small { color: #536071; font-size: 8px; }
+      .period { text-align: right; }
+      .period strong { display: block; font-size: 13px; }
+      .period span { font-size: 14px; font-weight: 700; }
+      input, select { width: 100%; border: 0; border-bottom: 1px dashed #d6e0ef; border-radius: 0; padding: 4px 1px; outline: 0; color: var(--ink); background: transparent; font: inherit; }
+      input:focus, select:focus { border-bottom-color: var(--blue); }
+      .company { width: 48%; margin-top: 13px; }
+      .company input:first-child { border: 1px solid var(--blue); padding: 4px 6px; font-size: 14px; }
+      .company input { display: block; margin: 2px 0; }
+      .section-title { margin: 28px 0 12px; font-weight: 700; font-size: 12px; }
+      .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 44px; }
+      .field { display: grid; grid-template-columns: 68px 1fr; align-items: center; gap: 8px; }
+      .field label { font-size: 10px; }
+      .field input, .field select { font-size: 10px; }
+      .add { margin-top: 9px; color: var(--blue); cursor: pointer; font-size: 10px; border: 0; background: none; padding: 0; }
+      .add:before { content: "+"; border: 1px solid currentColor; border-radius: 50%; display: inline-grid; place-items: center; width: 10px; height: 10px; margin-right: 3px; }
+      .tables { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid #edf0f5; box-shadow: 0 3px 10px rgba(27, 47, 80, .06); }
+      .table-wrap + .table-wrap { border-left: 1px solid #edf0f5; }
+      table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+      th, td { padding: 7px 10px; border-bottom: 1px solid #eef1f5; text-align: left; font-size: 10px; }
+      th:last-child, td:last-child { text-align: right; width: 30%; }
+      th { font-size: 9px; color: #303b4b; }
+      td input { font-size: 10px; border-bottom: 0; padding: 0; }
+      .row-add td { color: var(--blue); cursor: pointer; border-bottom: 0; }
+      .total-row td { background: #fafafa; font-weight: 700; border-bottom: 0; padding: 9px 10px; }
+      .summary { width: 76%; margin: 20px 0 0; border: 1px solid #e5eaf1; display: grid; grid-template-columns: 1fr 95px; }
+      .summary > div { padding: 10px; }
+      .summary > div:last-child { border-left: 1px solid #e5eaf1; text-align: right; font-weight: 700; display: grid; place-items: center end; }
+      .summary strong { display: block; font-size: 11px; }
+      .summary small { color: var(--muted); font-size: 9px; }
+      .words { margin: 5px 0 0; text-align: right; font-size: 9px; min-height: 23px; border-bottom: 1px solid #e2e6ec; }
+      .actions { display: flex; justify-content: center; gap: 14px; margin-top: 39px; }
+      button { font: 700 11px inherit; padding: 8px 18px; border-radius: 4px; cursor: pointer; }
+      .primary { color: white; background: var(--coral); border: 1px solid var(--coral); }
+      .secondary { color: var(--ink); background: white; border: 1px solid var(--ink); }
+      .status { color: var(--muted); text-align: center; min-height: 17px; margin-top: 9px; font-size: 10px; }
+      @media (max-width: 640px) { .page { padding: 8px; } .paper { padding: 16px 12px 22px; } .company { width: 70%; } .details-grid, .tables { grid-template-columns: 1fr; } .table-wrap + .table-wrap { border-left: 0; border-top: 1px solid #edf0f5; } .summary { width: 100%; } }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="paper" aria-label="Payslip form">
+        <header class="topbar">
+          <div class="brand">
+            <div class="logo"><span>Upload<br>Logo</span></div>
+            <div class="brand-copy"><strong id="companyNamePreview">Upload Logo</strong><small>240x240 pixels upto 2 70 DPI.<br>Maximum size of 2MB</small></div>
+          </div>
+          <div class="period">Payslip For the Month<strong id="monthPreview">September 2026</strong></div>
+        </header>
+
+        <div class="company">
+          <input id="companyName" aria-label="Company name" placeholder="Company Name*">
+          <input id="companyAddress" aria-label="Company address" placeholder="Company Address">
+          <input id="companyLocation" aria-label="City and pincode" placeholder="City, Pincode">
+          <input id="companyCountry" aria-label="Country" placeholder="India">
+        </div>
+
+        <h3 class="section-title">Employee Pay Summary *</h3>
+        <div class="details-grid">
+          <div class="field"><label>Employee Name</label><input id="employeeName" placeholder="Eg: Meera Krishnan"></div>
+          <div class="field"><label>Employee ID</label><input id="employeeId" placeholder="Eg: 1234"></div>
+          <div class="field"><label>Pay Period</label><input id="payPeriod" type="month" value="2026-09"></div>
+          <div class="field"><label>Paid Days</label><input id="paidDays" type="number" min="0" placeholder="Eg: 22"></div>
+          <div class="field"><label>Loss of Pay Days</label><input id="lossDays" type="number" min="0" value="0"></div>
+          <div class="field"><label>Pay Date</label><input id="payDate" type="date" value="2026-09-01"></div>
+        </div>
+        <button class="add" id="addEmployeeField" type="button">Add another field</button>
+
+        <h3 class="section-title">Income Details *</h3>
+        <div class="tables">
+          <div class="table-wrap">
+            <table><thead><tr><th>Ear nings</th><th>Amount</th></tr></thead><tbody id="earningsBody"></tbody></table>
+          </div>
+          <div class="table-wrap">
+            <table><thead><tr><th>Deductions</th><th>Amount</th></tr></thead><tbody id="deductionsBody"></tbody></table>
+          </div>
+        </div>
+
+        <div class="summary"><div><strong>Total Net Payable</strong><small id="summaryLine">Gross Earnings - Total Deductions</small></div><div id="netPay">₹0</div></div>
+        <div class="words">Amount in words: <span id="amountWords"></span></div>
+        <div class="actions"><button class="primary" id="generate" type="button">Generate Payslip</button><button class="secondary" id="reset" type="button">⟳ &nbsp;Reset</button></div>
+        <div class="status" id="status" role="status"></div>
+      </section>
+    </main>
+    <script src="https://static.zohocdn.com/people/widgets/v1/js/zohopeople-widget-sdk.min.js"></script>
+    <script>
+      const defaultRows = { earnings: [['Basic', 0], ['House Rent Allowance', 0], ['Gross Earnings', 0]], deductions: [['Income Tax', 0], ['Provident Fund', 0], ['Total Deductions', 0]] };
+      const state = { ...defaultRows, extraEmployeeFields: [] };
+      const money = value => `₹${Number(value || 0).toLocaleString('en-IN')}`;
+      const parseAmount = value => Number(String(value).replace(/[^0-9.-]/g, '')) || 0;
+      function renderRows(type) {
+        const body = document.getElementById(`${type}Body`);
+        body.innerHTML = state[type].map((row, index) => {
+          const total = index === state[type].length - 1;
+          return `<tr class="${total ? 'total-row' : ''}"><td><input data-type="${type}" data-index="${index}" data-key="label" value="${row[0]}" ${total ? 'readonly' : ''}></td><td><input data-type="${type}" data-index="${index}" data-key="amount" value="${money(row[1])}" inputmode="decimal" ${total ? 'readonly' : ''}></td></tr>`;
+        }).join('') + `<tr class="row-add" data-add="${type}"><td colspan="2">+ Add ${type === 'earnings' ? 'Earnings' : 'Deductions'}</td></tr>`;
+      }
+      function refreshTotals() {
+        const gross = state.earnings.slice(0, -1).reduce((sum, row) => sum + row[1], 0);
+        const deductions = state.deductions.slice(0, -1).reduce((sum, row) => sum + row[1], 0);
+        state.earnings[state.earnings.length - 1][1] = gross;
+        state.deductions[state.deductions.length - 1][1] = deductions;
+        document.getElementById('netPay').textContent = money(gross - deductions);
+        document.getElementById('amountWords').textContent = gross - deductions ? numberToWords(gross - deductions) : '';
+        renderRows('earnings'); renderRows('deductions');
+      }
+      function numberToWords(value) { return `${Math.round(value).toLocaleString('en-IN')} rupees only`; }
+      function bindRows() {
+        document.querySelectorAll('tbody input').forEach(input => input.addEventListener('change', event => {
+          const el = event.target; const row = state[el.dataset.type][el.dataset.index];
+          row[el.dataset.key === 'amount' ? 1 : 0] = el.dataset.key === 'amount' ? parseAmount(el.value) : el.value;
+          refreshTotals();
+        }));
+        document.querySelectorAll('[data-add]').forEach(button => button.addEventListener('click', () => { state[button.dataset.add].splice(-1, 0, ['New item', 0]); refreshTotals(); }));
+      }
+      function formatMonth(value) { const date = new Date(`${value}-01T00:00:00`); return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }); }
+      function bindForm() {
+        document.getElementById('companyName').addEventListener('input', event => { document.getElementById('companyNamePreview').textContent = event.target.value || 'Upload Logo'; });
+        document.getElementById('payPeriod').addEventListener('input', event => { document.getElementById('monthPreview').textContent = formatMonth(event.target.value); });
+        document.getElementById('reset').addEventListener('click', () => { document.querySelectorAll('input').forEach(input => { if (input.id === 'payPeriod') input.value = '2026-09'; else if (input.id === 'payDate') input.value = '2026-09-01'; else input.value = input.id === 'lossDays' ? '0' : ''; }); state.earnings = defaultRows.earnings.map(row => [...row]); state.deductions = defaultRows.deductions.map(row => [...row]); refreshTotals(); document.getElementById('status').textContent = ''; });
+        document.getElementById('generate').addEventListener('click', () => { document.getElementById('status').textContent = 'Payslip is ready to download or print.'; window.print(); });
+        document.getElementById('addEmployeeField').addEventListener('click', () => { const field = document.createElement('div'); field.className = 'field'; field.innerHTML = '<label>Additional Field</label><input placeholder="Enter value">'; document.querySelector('.details-grid').appendChild(field); });
+      }
+      const fieldAliases = {
+        employeeName: ['employeeName', 'Employee_Name', 'employee_name', 'name'],
+        employeeId: ['employeeId', 'Employee_ID', 'employee_id', 'empId', 'id'],
+        companyName: ['companyName', 'Company_Name', 'company_name'],
+        companyAddress: ['companyAddress', 'Company_Address', 'company_address', 'address'],
+        companyLocation: ['companyLocation', 'City_Pincode', 'city', 'location'],
+        paidDays: ['paidDays', 'Paid_Days', 'paid_days'],
+        lossDays: ['lossDays', 'Loss_of_Pay_Days', 'loss_of_pay_days'],
+        payDate: ['payDate', 'Pay_Date', 'pay_date']
+      };
+      function firstValue(source, names) {
+        const key = names.find(name => source[name] !== undefined && source[name] !== null && source[name] !== '');
+        return key ? source[key] : '';
+      }
+      function flattenRecord(data) {
+        const record = data && (data.data || data.record || data) || {};
+        return Array.isArray(record) ? (record[0] || {}) : record;
+      }
+      function applyRecord(record) {
+        const source = flattenRecord(record);
+        Object.keys(fieldAliases).forEach(id => {
+          const value = firstValue(source, fieldAliases[id]);
+          if (value !== '') document.getElementById(id).value = value;
+        });
+        const payPeriod = firstValue(source, ['payPeriod', 'Pay_Period', 'pay_period', 'month']);
+        if (payPeriod) {
+          const month = String(payPeriod).slice(0, 7);
+          document.getElementById('payPeriod').value = month;
+          document.getElementById('monthPreview').textContent = formatMonth(month);
+        }
+        const earnings = firstValue(source, ['earnings', 'Earnings', 'incomeDetails']);
+        const deductions = firstValue(source, ['deductions', 'Deductions', 'deductionDetails']);
+        if (Array.isArray(earnings)) state.earnings = earnings.map(item => [item.label || item.name || 'Earnings', parseAmount(item.amount || item.value)]).concat([['Gross Earnings', 0]]);
+        if (Array.isArray(deductions)) state.deductions = deductions.map(item => [item.label || item.name || 'Deductions', parseAmount(item.amount || item.value)]).concat([['Total Deductions', 0]]);
+        document.getElementById('companyNamePreview').textContent = document.getElementById('companyName').value || 'Upload Logo';
+        refreshTotals();
+      }
+      function getRecordId(context) {
+        const source = context && (context.data || context) || {};
+        return source.recordId || source.record_id || source.entityId || source.entity_id || source.id;
+      }
+      function fetchCurrentRecord(context) {
+        const recordId = getRecordId(context);
+        if (!recordId || !window.ZOHO || !ZOHO.People || !ZOHO.People.API || !ZOHO.People.API.getRecord) {
+          applyRecord(context);
+          document.getElementById('status').textContent = recordId ? 'Zoho People record API is unavailable.' : 'Open this widget from an employee record to load data.';
+          return;
+        }
+        const request = { recordId: recordId, formName: context.formName || context.module || 'employee' };
+        document.getElementById('status').textContent = 'Loading employee record...';
+        ZOHO.People.API.getRecord(request).then(response => {
+          applyRecord(response);
+          document.getElementById('status').textContent = 'Record data loaded from Zoho People.';
+        }).catch(error => {
+          console.error('Unable to load Zoho People record', error);
+          document.getElementById('status').textContent = 'Could not load this Zoho People record.';
+        });
+      }
+      renderRows('earnings'); renderRows('deductions'); bindRows(); bindForm(); refreshTotals();
+      if (window.ZOHO && ZOHO.embeddedApp) { ZOHO.embeddedApp.on('PageLoad', fetchCurrentRecord); ZOHO.embeddedApp.init(); }
+    </script>
+  </body>
+</html>
